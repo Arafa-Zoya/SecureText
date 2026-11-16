@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SecureText – Encryption Suite</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><span class="logo">ST</span><span>SecureText</span></div>
+  <nav class="nav flex-column" id="nav">
+    <a class="nav-link" href="#dashboard">Dashboard</a>
+    <a class="nav-link" href="#aes">AES-256-GCM</a>
+    <a class="nav-link" href="#rsa">RSA-2048</a>
+    <a class="nav-link" href="#caesar">Caesar cipher</a>
+    <a class="nav-link" href="#vigenere">Vigenère cipher</a>
+    <a class="nav-link" href="#files">File encryption</a>
+    <a class="nav-link" href="#info">Security information</a>
+  </nav>
+  <div class="status mt-auto"><span class="dot" id="dot"></span><span id="statusText">Checking API…</span></div>
+</aside>
+
+<main class="content">
+  <header class="topbar">
+    <button class="btn btn-ghost d-lg-none" id="menuBtn" aria-label="Toggle menu">Menu</button>
+    <h1 id="pageTitle">Dashboard</h1>
+  </header>
+
+  <!-- 1. Dashboard -->
+  <section class="view" id="view-dashboard">
+    <div class="hero">
+      <h2>Encrypt, decrypt and protect your data</h2>
+      <p>Every operation runs on your Flask backend. Nothing is simulated in the browser.</p>
+    </div>
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3"><div class="panel stat"><b id="sOps">0</b><span>Operations this session</span></div></div>
+      <div class="col-6 col-lg-3"><div class="panel stat"><b id="sApi">–</b><span>API status</span></div></div>
+      <div class="col-6 col-lg-3"><div class="panel stat"><b>600,000</b><span>PBKDF2 iterations</span></div></div>
+      <div class="col-6 col-lg-3"><div class="panel stat"><b>5 MB</b><span>File size limit</span></div></div>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-6 col-xl-4"><a class="panel tool" href="#aes"><h3>AES-256-GCM</h3><p>Password-based authenticated encryption for text.</p></a></div>
+      <div class="col-md-6 col-xl-4"><a class="panel tool" href="#rsa"><h3>RSA-2048</h3><p>Generate a protected key pair, then encrypt and decrypt messages.</p></a></div>
+      <div class="col-md-6 col-xl-4"><a class="panel tool" href="#caesar"><h3>Caesar cipher</h3><p>Classic shift cipher for learning and demos.</p></a></div>
+      <div class="col-md-6 col-xl-4"><a class="panel tool" href="#vigenere"><h3>Vigenère cipher</h3><p>Keyword-based polyalphabetic substitution.</p></a></div>
+      <div class="col-md-6 col-xl-4"><a class="panel tool" href="#files"><h3>File encryption</h3><p>Encrypt files with an RSA public key into .securetext files.</p></a></div>
+      <div class="col-md-6 col-xl-4"><a class="panel tool" href="#info"><h3>Security information</h3><p>How each algorithm works and where it is weak.</p></a></div>
+    </div>
+  </section>
+
+  <!-- 2. AES -->
+  <section class="view" id="view-aes">
+    <div class="row g-4">
+      <div class="col-xl-6"><form class="panel" id="aesEncForm">
+        <h3>Encrypt text</h3>
+        <label class="form-label">Message</label><textarea class="form-control" name="message" rows="4" required></textarea>
+        <label class="form-label">Password</label><input class="form-control" type="password" name="password" autocomplete="new-password" required>
+        <button class="btn btn-accent mt-3">Encrypt</button>
+        <div class="msg" id="aesEncMsg"></div>
+        <div class="result" id="aesEncOut" hidden>
+          <label class="form-label">encrypted_data</label><pre id="aesEncData"></pre>
+          <label class="form-label">key_metadata</label><pre id="aesEncMeta"></pre>
+          <button type="button" class="btn btn-ghost btn-sm" data-copy="aesEncData">Copy data</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-copy="aesEncMeta">Copy metadata</button>
+          <p class="hint mb-0 mt-2">Both values are needed to decrypt. They were copied into the decrypt form.</p>
+        </div>
+      </form></div>
+      <div class="col-xl-6"><form class="panel" id="aesDecForm">
+        <h3>Decrypt text</h3>
+        <label class="form-label">Encrypted data</label><textarea class="form-control mono" name="encrypted_data" id="aesDecData" rows="4" required></textarea>
+        <label class="form-label">Key metadata (JSON)</label><textarea class="form-control mono" name="key_metadata" id="aesDecMeta" rows="4" required></textarea>
+        <label class="form-label">Password</label><input class="form-control" type="password" name="password" autocomplete="off" required>
+        <button class="btn btn-accent mt-3">Decrypt</button>
+        <div class="msg" id="aesDecMsg"></div>
+        <div class="result" id="aesDecOut" hidden><label class="form-label">Decrypted message</label><pre id="aesDecText"></pre></div>
+      </form></div>
+    </div>
+  </section>
+
+  <!-- 3. RSA -->
+  <section class="view" id="view-rsa">
+    <div class="row g-4">
+      <div class="col-12"><form class="panel" id="rsaKeyForm">
+        <h3>Generate key pair</h3>
+        <div class="row g-3 align-items-end">
+          <div class="col-md-8"><label class="form-label">Private key password (12+ characters)</label><input class="form-control" type="password" name="password" minlength="12" autocomplete="new-password" required></div>
+          <div class="col-md-4"><button class="btn btn-accent w-100">Generate keys</button></div>
+        </div>
+        <div class="msg" id="rsaKeyMsg"></div>
+        <div class="result" id="rsaKeyOut" hidden>
+          <div class="row g-3">
+            <div class="col-lg-6"><label class="form-label">Public key</label><pre id="rsaPub"></pre>
+              <button type="button" class="btn btn-ghost btn-sm" data-copy="rsaPub">Copy</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-dl="rsaPub" data-name="public_key.pem">Download</button></div>
+            <div class="col-lg-6"><label class="form-label">Encrypted private key</label><pre id="rsaPriv"></pre>
+              <button type="button" class="btn btn-ghost btn-sm" data-copy="rsaPriv">Copy</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-dl="rsaPriv" data-name="encrypted_private_key.pem">Download</button></div>
+          </div>
+          <p class="hint mb-0 mt-2">The private key stays encrypted with your password. Keep both safe: the server does not store them.</p>
+        </div>
+      </form></div>
+      <div class="col-xl-6"><form class="panel" id="rsaEncForm">
+        <h3>Encrypt with public key</h3>
+        <label class="form-label">Message</label><textarea class="form-control" name="message" rows="3" required></textarea>
+        <label class="form-label">Public key (PEM)</label><textarea class="form-control mono" name="public_key" id="rsaEncPub" rows="5" required></textarea>
+        <button class="btn btn-accent mt-3">Encrypt</button>
+        <div class="msg" id="rsaEncMsg"></div>
+        <div class="result" id="rsaEncOut" hidden><label class="form-label">Ciphertext (base64)</label><pre id="rsaEncText"></pre><button type="button" class="btn btn-ghost btn-sm" data-copy="rsaEncText">Copy</button></div>
+      </form></div>
+      <div class="col-xl-6"><form class="panel" id="rsaDecForm">
+        <h3>Decrypt with private key</h3>
+        <label class="form-label">Ciphertext</label><textarea class="form-control mono" name="ciphertext" id="rsaDecCipher" rows="3" required></textarea>
+        <label class="form-label">Encrypted private key (PEM)</label><textarea class="form-control mono" name="encrypted_private_key" id="rsaDecPriv" rows="5" required></textarea>
+        <label class="form-label">Private key password</label><input class="form-control" type="password" name="password" autocomplete="off" required>
+        <button class="btn btn-accent mt-3">Decrypt</button>
+        <div class="msg" id="rsaDecMsg"></div>
+        <div class="result" id="rsaDecOut" hidden><label class="form-label">Decrypted message</label><pre id="rsaDecText"></pre></div>
+      </form></div>
+    </div>
+  </section>
+
+  <!-- 4. Caesar -->
+  <section class="view" id="view-caesar">
+    <form class="panel narrow" id="caesarForm">
+      <h3>Caesar cipher</h3>
+      <label class="form-label">Message</label><textarea class="form-control" name="message" rows="4" required></textarea>
+      <label class="form-label">Shift</label><input class="form-control" type="number" name="shift" value="3" required>
+      <div class="mt-3 d-flex gap-2"><button class="btn btn-accent" data-mode="encrypt">Encrypt</button><button class="btn btn-ghost" data-mode="decrypt">Decrypt</button></div>
+      <div class="msg" id="caesarMsg"></div>
+      <div class="result" id="caesarOut" hidden><label class="form-label" id="caesarLabel">Result</label><pre id="caesarText"></pre><button type="button" class="btn btn-ghost btn-sm" data-copy="caesarText">Copy</button></div>
+    </form>
+  </section>
+
+  <!-- 5. Vigenère -->
+  <section class="view" id="view-vigenere">
+    <form class="panel narrow" id="vigenereForm">
+      <h3>Vigenère cipher</h3>
+      <label class="form-label">Message</label><textarea class="form-control" name="message" rows="4" required></textarea>
+      <label class="form-label">Key (letters only)</label><input class="form-control" name="key" pattern="[A-Za-z]+" required>
+      <div class="mt-3 d-flex gap-2"><button class="btn btn-accent" data-mode="encrypt">Encrypt</button><button class="btn btn-ghost" data-mode="decrypt">Decrypt</button></div>
+      <div class="msg" id="vigenereMsg"></div>
+      <div class="result" id="vigenereOut" hidden><label class="form-label" id="vigenereLabel">Result</label><pre id="vigenereText"></pre><button type="button" class="btn btn-ghost btn-sm" data-copy="vigenereText">Copy</button></div>
+    </form>
+  </section>
+
+  <!-- 6. Files -->
+  <section class="view" id="view-files">
+    <div class="row g-4">
+      <div class="col-xl-6"><form class="panel" id="fileEncForm">
+        <h3>Encrypt a file</h3>
+        <label class="form-label">File (max 5 MB)</label><input class="form-control" type="file" name="file" required>
+        <label class="form-label">RSA public key (PEM)</label><textarea class="form-control mono" name="public_key" id="fileEncPub" rows="5" required></textarea>
+        <button class="btn btn-accent mt-3">Encrypt and download</button>
+        <div class="msg" id="fileEncMsg"></div>
+      </form></div>
+      <div class="col-xl-6"><form class="panel" id="fileDecForm">
+        <h3>Decrypt a file</h3>
+        <label class="form-label">Encrypted file (.securetext)</label><input class="form-control" type="file" name="file" accept=".securetext" required>
+        <label class="form-label">Encrypted private key (PEM)</label><textarea class="form-control mono" name="encrypted_private_key" id="fileDecPriv" rows="4" required></textarea>
+        <label class="form-label">Private key password</label><input class="form-control" type="password" name="password" autocomplete="off" required>
+        <button class="btn btn-accent mt-3">Decrypt and download</button>
+        <div class="msg" id="fileDecMsg"></div>
+      </form></div>
+    </div>
+  </section>
+
+  <!-- 7. Info -->
+  <section class="view" id="view-info">
+    <div class="row g-3">
+      <div class="col-lg-6"><div class="panel"><h3>AES-256-GCM</h3><p>Symmetric, authenticated encryption. The key is derived from your password with PBKDF2-HMAC-SHA256 (600,000 iterations) and a random salt. GCM detects tampering, so a wrong password or altered data fails to decrypt. Security depends on password strength.</p></div></div>
+      <div class="col-lg-6"><div class="panel"><h3>RSA-2048</h3><p>Asymmetric encryption: anyone can encrypt with the public key, only the private key holder can decrypt. Here the private key is stored as encrypted PKCS8 and needs its password. RSA handles small payloads; files need a hybrid approach.</p></div></div>
+      <div class="col-lg-6"><div class="panel"><h3>Caesar and Vigenère</h3><p>Historical ciphers included for teaching. Caesar has only 25 useful shifts. Vigenère resists simple frequency analysis but falls to the Kasiski test. Do not use either to protect real data.</p></div></div>
+      <div class="col-lg-6"><div class="panel"><h3>Good practice</h3><p>Use passwords of 12+ characters, back up your private key and its password separately, and never share the private key. Lost passwords cannot be recovered because the server stores nothing.</p></div></div>
+    </div>
+  </section>
+</main>
+
+<div class="toast-wrap" id="toastWrap"></div>
+<script src="/static/js/script.js"></script>
+</body>
+</html>

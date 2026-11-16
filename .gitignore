@@ -1,0 +1,14 @@
+
+venv/
+.env
+__pycache__/
+.pytest_cache/
+*.pyc
+keys/*
+!keys/.gitkeep
+uploads/*
+encrypted_files/*
+.DS_Store
+frontend_temp/
+claude-frontend.zip
+test_file.txt
